@@ -31,10 +31,9 @@ public class MachineDbContext : DbContext
 
         modelBuilder.Entity<Machine>().Property<int>("Id");
         modelBuilder.Entity<Machine>().HasKey("Id");
-        
         modelBuilder.Entity<Machine>().OwnsMany(machine => machine.jobs, jobBuilder =>
         {
-            jobBuilder.WithOwner().HasForeignKey("FK_MachineName");
+            jobBuilder.WithOwner().HasForeignKey("FK_MachineId");
             jobBuilder.Property<int>("Id");
             jobBuilder.HasKey("Id");
         });
