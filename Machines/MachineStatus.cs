@@ -3,5 +3,6 @@ namespace machines;
 public enum MachineStatus
 {
     Inactive,
-    InJob
+    InJob,
+    Error,
 }

@@ -2,7 +2,13 @@ namespace machines;
 
 public interface IMachineRepository
 {
-    Task AddMachineAsync(Machine machine);
+    Machine CreateAsync(string machineName);
+    
+    Machine GetMachineAsync(string machineName);
 
-    Task<Machine> GetMachineAsync(string machineName);
+    IQueryable<Machine> GetMachinesAsync();
+
+    Machine UpdateMachineAsync(string machineName, MachineStatus status);
+
+    Task DeleteMachineAsync(string machineName, bool force);
 }

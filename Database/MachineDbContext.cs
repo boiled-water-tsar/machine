@@ -1,7 +1,7 @@
 using machines.Jobs;
 using Microsoft.EntityFrameworkCore;
 
-namespace machines.Db;
+namespace machines.DataBase;
 
 public class MachineDbContext : DbContext
 {
@@ -9,9 +9,9 @@ public class MachineDbContext : DbContext
     {
     }
 
-    public DbSet<Machine>? Machines { get; set; }
+    public DbSet<Machine> Machines { get; set; }
 
-    public DbSet<Job>? Jobs { get; set; }
+    public DbSet<Job> Jobs { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -31,7 +31,7 @@ public class MachineDbContext : DbContext
 
         modelBuilder.Entity<Machine>().Property<int>("Id");
         modelBuilder.Entity<Machine>().HasKey("Id");
-        modelBuilder.Entity<Machine>().OwnsMany(machine => machine.jobs, jobBuilder =>
+        modelBuilder.Entity<Machine>().OwnsMany(machine => machine.Jobs, jobBuilder =>
         {
             jobBuilder.WithOwner().HasForeignKey("FK_MachineId");
             jobBuilder.Property<int>("Id");

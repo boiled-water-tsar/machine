@@ -1,21 +1,36 @@
-using System.Runtime.CompilerServices;
+using machines.Exceptions;
 using machines.Jobs;
 
 namespace machines;
 
 public class Machine
 {
-    public string name { get; set; }
-    public Guid machineId { get; set; }
-    public MachineStatus status { get; set; }
-    
-    public List<Job> jobs { get; set; }
+    public string Name { get; set; }
+    public Guid MachineId { get; set; }
+    public MachineStatus Status { get; set; }
+
+    public List<Job> Jobs { get; set; }
 
     public Machine(string name)
     {
-        this.name = name;
-        this.machineId = new Guid();
-        this.status = MachineStatus.Inactive;
-        this.jobs = new List<Job>();
+        Name = name;
+        MachineId = Guid.NewGuid();
+        Status = MachineStatus.Inactive;
+        Jobs = new List<Job>();
+    }
+
+    public void AddJob(Job job)
+    {
+        if (Status == MachineStatus.Error)
+        {
+            throw new MachineErrorException($"{Name} is in state {Status} and cannot receive new jobs");
+        }
+
+        Jobs.Add(job);
+    }
+
+    public void SetStatus(MachineStatus status)
+    {
+        Status = status;
     }
 }
