@@ -2,13 +2,13 @@ namespace machines.Jobs;
 
 public interface IJobRepository
 {
-    Job Create(string jobName, int duration, string machineName);
+    Job Create(int duration, string machineName);
     
-    Job GetJob(Guid jobId);
+    Job GetJob(Guid jobId, string machineName);
 
     IQueryable<Job> GetJobs();
 
-    Job UpdateJob(Guid jobId, JobStatus status);
+    Job UpdateJob(Guid jobId, string machineName, JobStatus status);
 
-    Task DeleteJob(Guid jobId);
+    Task DeleteJob(Guid jobId, string machineName);
 }

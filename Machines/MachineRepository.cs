@@ -1,4 +1,3 @@
-using System.Transactions;
 using machines.DataBase;
 using machines.Exceptions;
 using Microsoft.EntityFrameworkCore;
@@ -35,7 +34,7 @@ public class MachineRepository : IMachineRepository
 
         return machine;
     }
-    
+
     public Machine GetMachine(Guid machineId)
     {
         var machine = _machineDbContext.Machines.Include(machine => machine.Jobs)
@@ -63,7 +62,7 @@ public class MachineRepository : IMachineRepository
         _machineDbContext.SaveChanges();
         return machine;
     }
-    
+
     public Machine UpdateMachine(Machine machine)
     {
         _machineDbContext.Machines.Attach(machine);
@@ -75,6 +74,13 @@ public class MachineRepository : IMachineRepository
     public async Task DeleteMachine(string machineName)
     {
         var machine = GetMachine(machineName);
+
+        if (machine.Jobs.Any())
+        {
+            throw new JobStillRunningException(
+                $"Cannot delete machine '{machineName}' it still contains {machine.Jobs.Count} queued jobs");
+        }
+
         _machineDbContext.Machines.Attach(machine);
         _machineDbContext.Machines.Remove(machine);
         await _machineDbContext.SaveChangesAsync();

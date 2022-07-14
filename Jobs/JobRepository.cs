@@ -1,29 +1,35 @@
-using System.Transactions;
-using machines.DataBase;
+using machines.Exceptions;
 using machines.Jobs;
-using Microsoft.EntityFrameworkCore;
 
 namespace machines;
 
 public class JobRepository: IJobRepository
 {
-    private readonly MachineDbContext _machineDbContext;
     private readonly IMachineRepository _machineRepository;
 
-    public JobRepository(MachineDbContext machineDbContext, IMachineRepository machineRepository)
+    public JobRepository(IMachineRepository machineRepository)
     {
-        _machineDbContext = machineDbContext;
         _machineRepository = machineRepository;
     }
     
-    public Job Create(string jobName, int duration, string machineName)
+    public Job Create(int duration, string machineName)
     {
         var machine = _machineRepository.GetMachine(machineName);
         var job = new Job(duration, machineName);
 
         if (machine.Jobs.Any())
         {
-            JobTimeLoop(job, machine);
+            var jobTimes = new List<DateTime>();
+            foreach (var existingJob in machine.Jobs)
+            {
+                if (existingJob.End < job.Start)
+                {
+                    jobTimes.Add(existingJob.End);
+                }
+            }
+            
+            jobTimes.Sort();
+            throw new NoSpaceInQueueException($"No space in machine '{machineName}' queue before after {jobTimes.Last()}");
         }
 
         machine.Jobs.Add(job);
@@ -31,7 +37,7 @@ public class JobRepository: IJobRepository
         return job;
     }
 
-    public Job GetJob(Guid jobId)
+    public Job GetJob(Guid jobId, string machineName)
     {
         throw new NotImplementedException();
     }
@@ -41,26 +47,13 @@ public class JobRepository: IJobRepository
         throw new NotImplementedException();
     }
 
-    public Job UpdateJob(Guid jobId, JobStatus status)
+    public Job UpdateJob(Guid jobId, string machineName, JobStatus status)
     {
         throw new NotImplementedException();
     }
 
-    public Task DeleteJob(Guid jobId)
+    public Task DeleteJob(Guid jobId, string machineName)
     {
         throw new NotImplementedException();
-    }
-
-    private void JobTimeLoop(Job job, Machine machine)
-    {
-        foreach (var existingJob in machine.Jobs)
-        {
-            if (existingJob.End > job.Start)
-            {
-                var nextDuration = existingJob.End - job.Start + TimeSpan.FromSeconds(job.DurationSeconds);
-                job.UpdateJobDuration(nextDuration.Seconds);
-                JobTimeLoop(job, machine);
-            }
-        }
     }
 }

@@ -18,12 +18,16 @@ public class JobsController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(Job), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Route("{jobName}")]
-    public async Task<IActionResult> CreateJob(string jobName, int duration, string machineName)
+    [Route("")]
+    public async Task<IActionResult> CreateJob(int duration, string machineName)
     {
         try
         {
-            return this.Ok(_jobRepository.Create(jobName, duration, machineName));
+            return this.Ok(_jobRepository.Create(duration, machineName));
+        }
+        catch (NoSpaceInQueueException e)
+        {
+            return this.Conflict(e.Message);
         }
         catch (AlreadyExistsException e)
         {
@@ -43,12 +47,12 @@ public class JobsController : ControllerBase
     [ProducesResponseType(typeof(Job), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Route("{jobId}")]
-    public async Task<IActionResult> GetJob(Guid jobId)
+    [Route("{jobId:guid}")]
+    public async Task<IActionResult> GetJob(Guid jobId, string machineName)
     {
         try
         {
-            return this.Ok(_jobRepository.GetJob(jobId));
+            return this.Ok(_jobRepository.GetJob(jobId, machineName));
         }
         catch (NotFoundException e)
         {
@@ -81,11 +85,11 @@ public class JobsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Route("Update")]
-    public async Task<IActionResult> UpdateJob(Guid jobId, string status)
+    public async Task<IActionResult> UpdateJob(Guid jobId, string machineName, string status)
     {
         try
         {
-            return this.Ok(_jobRepository.UpdateJob(jobId, Enum.Parse<JobStatus>(status)));
+            return this.Ok(_jobRepository.UpdateJob(jobId, machineName, Enum.Parse<JobStatus>(status)));
         }
         catch (NotFoundException e)
         {
@@ -101,12 +105,12 @@ public class JobsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Route("/delete/{jobName}")]
-    public async Task<IActionResult> Deletejob(Guid jobId)
+    [Route("delete/{jobId:guid}")]
+    public async Task<IActionResult> DeleteJob(Guid jobId, string machineName)
     {
         try
         {
-            await _jobRepository.DeleteJob(jobId);
+            await _jobRepository.DeleteJob(jobId, machineName);
             return this.Ok();
         }
         catch (NotFoundException e)

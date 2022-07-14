@@ -96,13 +96,17 @@ public class MachinesController: ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Route("/delete/{machineName}")]
+    [Route("delete/{machineName}")]
     public async Task<IActionResult> DeleteMachine(string machineName)
     {
         try
         {
-            _machineRepository.DeleteMachine(machineName);
+            await _machineRepository.DeleteMachine(machineName);
             return this.Ok();
+        }
+        catch (JobStillRunningException e)
+        {
+            return this.Conflict(e.Message);
         }
         catch (NotFoundException e)
         {
