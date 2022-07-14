@@ -39,12 +39,21 @@ public class JobRepository: IJobRepository
 
     public Job GetJob(Guid jobId, string machineName)
     {
-        throw new NotImplementedException();
+        var machine = _machineRepository.GetMachine(machineName);
+        var job = machine.Jobs.First(job => job.JobId == jobId);
+
+        if (job is null)
+        {
+            throw new NotFoundException($"Job {jobId} not found in machine {machineName}");
+        }
+
+        return job;
     }
 
     public IQueryable<Job> GetJobs()
     {
-        throw new NotImplementedException();
+        var machines = _machineRepository.GetMachines();
+        return machines.SelectMany(m => m.Jobs).AsQueryable();
     }
 
     public Job UpdateJob(Guid jobId, string machineName, JobStatus status)
