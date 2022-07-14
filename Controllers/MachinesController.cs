@@ -24,7 +24,7 @@ public class MachinesController: ControllerBase
         {
             return this.Ok(_machineRepository.CreateAsync(machineName));
         }
-        catch (MachineAlreadyExistsException e)
+        catch (AlreadyExistsException e)
         {
             return this.Conflict(e.Message);
         }
