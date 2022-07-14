@@ -9,14 +9,14 @@ public class Machine
     public Guid MachineId { get; set; }
     public MachineStatus Status { get; set; }
 
-    public List<Job> Jobs { get; set; }
+    public HashSet<Job> Jobs { get; set; }
 
     public Machine(string name)
     {
         Name = name;
         MachineId = Guid.NewGuid();
         Status = MachineStatus.Inactive;
-        Jobs = new List<Job>();
+        Jobs = new HashSet<Job>();
     }
 
     public void AddJob(Job job)

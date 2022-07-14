@@ -1,32 +1,37 @@
 using machines.Exceptions;
+using machines.Jobs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace machines.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class MachinesController: ControllerBase
+public class JobsController : ControllerBase
 {
-    private readonly IMachineRepository _machineRepository;
+    private readonly IJobRepository _jobRepository;
 
-    public MachinesController(IMachineRepository machineRepository)
+    public JobsController(IJobRepository jobRepository)
     {
-        _machineRepository = machineRepository;
+        _jobRepository = jobRepository;
     }
-
+    
     [HttpPost]
-    [ProducesResponseType(typeof(Machine), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(Job), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Route("{machineName}")]
-    public async Task<IActionResult> CreateMachine(string machineName)
+    [Route("{jobName}")]
+    public async Task<IActionResult> CreateJob(string jobName, int duration, string machineName)
     {
         try
         {
-            return this.Ok(_machineRepository.Create(machineName));
+            return this.Ok(_jobRepository.Create(jobName, duration, machineName));
         }
         catch (AlreadyExistsException e)
         {
             return this.Conflict(e.Message);
+        }
+        catch (NotFoundException e)
+        {
+            return this.NotFound(e.Message);
         }
         catch (Exception e)
         {
@@ -35,15 +40,15 @@ public class MachinesController: ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(Machine), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Job), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Route("{machineName}")]
-    public async Task<IActionResult> GetMachine(string machineName)
+    [Route("{jobId}")]
+    public async Task<IActionResult> GetJob(Guid jobId)
     {
         try
         {
-            return this.Ok(_machineRepository.GetMachine(machineName));
+            return this.Ok(_jobRepository.GetJob(jobId));
         }
         catch (NotFoundException e)
         {
@@ -57,12 +62,12 @@ public class MachinesController: ControllerBase
     }
     
     [HttpGet]
-    [ProducesResponseType(typeof(IQueryable<Machine>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMachines()
+    [ProducesResponseType(typeof(IQueryable<Job>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetJobs()
     {
         try
         {
-            return this.Ok(_machineRepository.GetMachines());
+            return this.Ok(_jobRepository.GetJobs());
         }
         catch (Exception e)
         {
@@ -72,15 +77,15 @@ public class MachinesController: ControllerBase
     }
 
     [HttpPost]
-    [ProducesResponseType(typeof(Machine), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Job), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Route("Update")]
-    public async Task<IActionResult> UpdateMachine(string machineName, string status)
+    public async Task<IActionResult> UpdateJob(Guid jobId, string status)
     {
         try
         {
-            return this.Ok(_machineRepository.UpdateMachine(machineName, Enum.Parse<MachineStatus>(status)));
+            return this.Ok(_jobRepository.UpdateJob(jobId, Enum.Parse<JobStatus>(status)));
         }
         catch (NotFoundException e)
         {
@@ -96,12 +101,12 @@ public class MachinesController: ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Route("/delete/{machineName}")]
-    public async Task<IActionResult> DeleteMachine(string machineName)
+    [Route("/delete/{jobName}")]
+    public async Task<IActionResult> Deletejob(Guid jobId)
     {
         try
         {
-            _machineRepository.DeleteMachine(machineName);
+            await _jobRepository.DeleteJob(jobId);
             return this.Ok();
         }
         catch (NotFoundException e)

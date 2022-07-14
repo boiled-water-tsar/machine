@@ -1,5 +1,6 @@
 using machines;
 using machines.DataBase;
+using machines.Jobs;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IMachineRepository, MachineRepository>();
+builder.Services.AddScoped<IJobRepository, JobRepository>();
 
 var connectionString = builder.Configuration.GetConnectionString("MachineDb");
 builder.Services.AddDbContext<MachineDbContext>(options =>

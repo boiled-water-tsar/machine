@@ -14,22 +14,16 @@ public class MachineRepository : IMachineRepository
         _machineDbContext = machineDbContext;
     }
 
-    public Machine CreateAsync(string machineName)
+    public Machine Create(string machineName)
     {
         var machine = new Machine(machineName);
-        var strategy = _machineDbContext.Database.CreateExecutionStrategy();
-        strategy.ExecuteAsync(async () =>
-        {
-            using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            _machineDbContext.Machines.Add(machine);
-            await _machineDbContext.SaveChangesAsync();
-            transaction.Complete();
-        });
+        _machineDbContext.Machines.Add(machine);
+        _machineDbContext.SaveChanges();
 
         return machine;
     }
 
-    public Machine GetMachineAsync(string machineName)
+    public Machine GetMachine(string machineName)
     {
         var machine = _machineDbContext.Machines.Include(machine => machine.Jobs)
             .FirstOrDefault(machine => machine.Name == machineName);
@@ -41,39 +35,48 @@ public class MachineRepository : IMachineRepository
 
         return machine;
     }
+    
+    public Machine GetMachine(Guid machineId)
+    {
+        var machine = _machineDbContext.Machines.Include(machine => machine.Jobs)
+            .FirstOrDefault(machine => machine.MachineId == machineId);
 
-    public IQueryable<Machine> GetMachinesAsync()
+        if (machine is null)
+        {
+            throw new NotFoundException($"Machine '{machineId}' not found");
+        }
+
+        return machine;
+    }
+
+    public IQueryable<Machine> GetMachines()
     {
         return _machineDbContext.Machines.Include(machine => machine.Jobs);
     }
 
-    public Machine UpdateMachineAsync(string machineName, MachineStatus status)
+    public Machine UpdateMachine(string machineName, MachineStatus status)
     {
-        var machine = GetMachineAsync(machineName);
+        var machine = GetMachine(machineName);
         machine.SetStatus(status);
-        var strategy = _machineDbContext.Database.CreateExecutionStrategy();
-        strategy.ExecuteAsync(async () =>
-        {
-            using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            _machineDbContext.Machines.Attach(machine);
-            _machineDbContext.Machines.Update(machine);
-            await _machineDbContext.SaveChangesAsync();
-            transaction.Complete();
-        });
+        _machineDbContext.Machines.Attach(machine);
+        _machineDbContext.Machines.Update(machine);
+        _machineDbContext.SaveChanges();
+        return machine;
+    }
+    
+    public Machine UpdateMachine(Machine machine)
+    {
+        _machineDbContext.Machines.Attach(machine);
+        _machineDbContext.Machines.Update(machine);
+        _machineDbContext.SaveChanges();
         return machine;
     }
 
-    public async Task DeleteMachineAsync(string machineName, bool force)
+    public async Task DeleteMachine(string machineName)
     {
-        var machine = GetMachineAsync(machineName);
-        var strategy = _machineDbContext.Database.CreateExecutionStrategy();
-        await strategy.ExecuteAsync(async () =>
-        {
-            using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            _machineDbContext.Machines.Attach(machine);
-            _machineDbContext.Machines.Remove(machine);
-            await _machineDbContext.SaveChangesAsync();
-            transaction.Complete();
-        });
+        var machine = GetMachine(machineName);
+        _machineDbContext.Machines.Attach(machine);
+        _machineDbContext.Machines.Remove(machine);
+        await _machineDbContext.SaveChangesAsync();
     }
 }
