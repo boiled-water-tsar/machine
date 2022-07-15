@@ -29,6 +29,14 @@ public class Machine
         Jobs.Add(job);
     }
 
+    public void RemoveJob(Job job)
+    {
+        if (!Jobs.Remove(job))
+        {
+            throw new NotFoundException($"Job '{job.JobId}' not found in machine '{Name}'");
+        }
+    }
+
     public void SetStatus(MachineStatus status)
     {
         Status = status;

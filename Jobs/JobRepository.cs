@@ -1,9 +1,10 @@
 using machines.Exceptions;
 using machines.Jobs;
+using Microsoft.EntityFrameworkCore;
 
 namespace machines;
 
-public class JobRepository: IJobRepository
+public class JobRepository : IJobRepository
 {
     private readonly IMachineRepository _machineRepository;
 
@@ -11,7 +12,7 @@ public class JobRepository: IJobRepository
     {
         _machineRepository = machineRepository;
     }
-    
+
     public Job Create(int duration, string machineName)
     {
         var machine = _machineRepository.GetMachine(machineName);
@@ -27,9 +28,10 @@ public class JobRepository: IJobRepository
                     jobTimes.Add(existingJob.End);
                 }
             }
-            
+
             jobTimes.Sort();
-            throw new NoSpaceInQueueException($"No space in machine '{machineName}' queue before after {jobTimes.Last()}");
+            throw new NoSpaceInQueueException(
+                $"No space in machine '{machineName}' queue before after {jobTimes.Last()}");
         }
 
         machine.Jobs.Add(job);
@@ -40,7 +42,7 @@ public class JobRepository: IJobRepository
     public Job GetJob(Guid jobId, string machineName)
     {
         var machine = _machineRepository.GetMachine(machineName);
-        var job = machine.Jobs.First(job => job.JobId == jobId);
+        var job = machine.Jobs.FirstOrDefault(job => job.JobId == jobId);
 
         if (job is null)
         {
@@ -52,17 +54,35 @@ public class JobRepository: IJobRepository
 
     public IQueryable<Job> GetJobs()
     {
-        var machines = _machineRepository.GetMachines();
-        return machines.SelectMany(m => m.Jobs).AsQueryable();
+        return _machineRepository.GetMachines().AsNoTracking().SelectMany(m => m.Jobs).AsQueryable();
     }
 
     public Job UpdateJob(Guid jobId, string machineName, JobStatus status)
     {
-        throw new NotImplementedException();
+        var machine = _machineRepository.GetMachine(machineName);
+        var job = machine.Jobs.FirstOrDefault(job => job.JobId == jobId);
+
+        if (job is null)
+        {
+            throw new NotFoundException($"Job {jobId} not found in machine {machineName}");
+        }
+
+        job.SetStatus(status);
+        _machineRepository.UpdateMachine(machine);
+        return job;
     }
 
     public Task DeleteJob(Guid jobId, string machineName)
     {
-        throw new NotImplementedException();
+        var machine = _machineRepository.GetMachine(machineName);
+        var job = machine.Jobs.FirstOrDefault(job => job.JobId == jobId);
+
+        if (job is null)
+        {
+            throw new NotFoundException($"Job {jobId} not found in machine {machineName}");
+        }
+        
+        machine.RemoveJob(job);
+        return Task.CompletedTask;
     }
 }

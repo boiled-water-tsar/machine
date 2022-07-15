@@ -30,8 +30,8 @@ public class Job
         DurationSeconds = durationSeconds;
     }
 
-    public void StartJob()
+    public void SetStatus(JobStatus status)
     {
-        Status = JobStatus.Running;
+        Status = status;
     }
 }
