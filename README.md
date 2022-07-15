@@ -7,3 +7,5 @@ To run start a db with docker (or edit connection string):
 Then compile and start the program with
 
 `dotnet run`
+
+Then navigate to https://localhost:5001/swagger/index.html
