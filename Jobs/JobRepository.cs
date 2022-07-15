@@ -85,4 +85,9 @@ public class JobRepository : IJobRepository
         machine.RemoveJob(job);
         return Task.CompletedTask;
     }
+
+    public IQueryable<Job> GetMachineJobs(string machineName)
+    {
+        return _machineRepository.GetMachine(machineName).Jobs.AsQueryable();
+    }
 }

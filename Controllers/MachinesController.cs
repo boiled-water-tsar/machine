@@ -1,4 +1,5 @@
 using machines.Exceptions;
+using machines.Jobs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace machines.Controllers;
@@ -8,10 +9,12 @@ namespace machines.Controllers;
 public class MachinesController: ControllerBase
 {
     private readonly IMachineRepository _machineRepository;
+    private readonly IJobRepository _jobRepository;
 
-    public MachinesController(IMachineRepository machineRepository)
+    public MachinesController(IMachineRepository machineRepository, IJobRepository jobRepository)
     {
         _machineRepository = machineRepository;
+        _jobRepository = jobRepository;
     }
 
     [HttpPost]
@@ -44,6 +47,28 @@ public class MachinesController: ControllerBase
         try
         {
             return this.Ok(_machineRepository.GetMachine(machineName));
+        }
+        catch (NotFoundException e)
+        {
+            return this.NotFound(e.Message);
+        }
+        catch (Exception e)
+        {
+            return this.StatusCode(500, e.Message);
+        }
+        
+    }
+    
+    [HttpGet]
+    [ProducesResponseType(typeof(IQueryable<Job>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Route("{machineName}/show-jobs")]
+    public async Task<IActionResult> GetMachineJobs(string machineName)
+    {
+        try
+        {
+            return this.Ok(_jobRepository.GetMachineJobs(machineName));
         }
         catch (NotFoundException e)
         {

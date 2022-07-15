@@ -11,4 +11,6 @@ public interface IJobRepository
     Job UpdateJob(Guid jobId, string machineName, JobStatus status);
 
     Task DeleteJob(Guid jobId, string machineName);
+
+    IQueryable<Job> GetMachineJobs(string machineName);
 }
